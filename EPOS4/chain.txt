@@ -1,0 +1,2 @@
+/alice/epos/z-cfg-1.root
+/alice/epos/z-cfg-0.root
