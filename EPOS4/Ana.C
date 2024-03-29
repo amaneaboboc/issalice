@@ -17,12 +17,11 @@
 #include "HistogramManager.h"
 
 #include "Track.h"
-
-//#include "./treeClass/EventN.h"
-#include "./treeClass/Include.h"
+//#include "./treeClass/Include.h"
 
 #include <iostream>
 #include <fstream>
+#include <map>
 
 using namespace std;
 
@@ -33,7 +32,9 @@ Double_t GetPhi(Double_t fX, Double_t fY)
 
 Double_t GetEta(Double_t fX, Double_t fY, Double_t fZ)
 {
-    return TMath::Sqrt(fX*fX + fY*fY + fZ*fZ) == 0.0  ? 0.0 : (0.5*TMath::Log( (TMath::Sqrt(fX*fX + fY*fY + fZ*fZ) + fZ) / (TMath::Sqrt(fX*fX + fY*fY + fZ*fZ) - fZ)));
+    Double_t sq_roots = TMath::Sqrt(fX*fX + fY*fY + fZ*fZ);
+    if(sq_roots==0){return 0.0;}
+    return 0.5*TMath::Log( (sq_roots + fZ) / (sq_roots - fZ));
 }
 
 Double_t GetEnergy(Double_t m, Double_t px, Double_t py, Double_t pz)
@@ -300,7 +301,7 @@ PairDerivedHistos* derivedHisto = new PairDerivedHistos(pairname);
     	}
     
     }
-    
+    Int_t np=0;
     
     Float_t px[5000], py[5000], pz[5000], e[5000];
     Int_t id[5000],ist[5000],np;
