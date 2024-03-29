@@ -176,6 +176,13 @@ case -2130: //anti-Lambda
     
 }
 
+void print_map(const std::map<int,int> m){
+
+for(const auto& [key, value] : m)
+std::cout << "code : charge << ["<<key<<"] = "<<value <<"; ";
+cout<<'\n';
+}
+
 TChain* CreateChainLocal(Int_t nFilesMax, const Char_t* filename, const Char_t* treeName);
 
 void Ana(const Char_t* inFileName, const Char_t* outFileName, const Char_t* inFileSpName, Bool_t useChain)
@@ -207,6 +214,12 @@ void Ana(const Char_t* inFileName, const Char_t* outFileName, const Char_t* inFi
         }
         inTree = (TTree*)inFile->Get("teposevent");
     }
+    
+    std::map<int, int>m{{12,-1},{-12,1},{14,-1},{-14,1},{16,-1},{-16,1},{120,1},{-120,-1},{130,1},{-130,-1},{131,1},{-131,-1},{451,1},{-451,-1},{1120,1},{-1120,-1},{1130,1},{-1130,-1},{2230,1},{-2230,-1},{2331,-1},{3140,1},{1340,1},{3331,-1},{-3331,1},{2140,1}};
+    
+    cout<<"print charge of 120 "<<m[120]<<endl;
+    
+    print_map(m);
     
     Int_t centr = 10;
 
@@ -301,7 +314,6 @@ PairDerivedHistos* derivedHisto = new PairDerivedHistos(pairname);
     	}
     
     }
-    Int_t np=0;
     
     Float_t px[5000], py[5000], pz[5000], e[5000];
     Int_t id[5000],ist[5000],np;
@@ -326,9 +338,8 @@ PairDerivedHistos* derivedHisto = new PairDerivedHistos(pairname);
         
         inTree->GetEntry(n);
      
-         //TClonesArray* fPartArray = new TClonesArray("TrackN", 5000);
 
-         Track track[5000];
+         std::vector<Track> track;
          
          Int_t nAddTrk=0;
          
@@ -337,9 +348,17 @@ PairDerivedHistos* derivedHisto = new PairDerivedHistos(pairname);
     	    if(ist[jj] != 0) continue;
     	    
      	    double pt = TMath::Sqrt(px[jj]*px[jj] + py[jj]*py[jj]);
+            int charge = 0;
             
-            int charge = sarcina(id[jj]);
+            if(m.find(id[jj]) != m.end() ){
+            charge = m[id[jj]];
+            }
             
+            else{
+            //cout<<id[jj]<<endl;
+            charge = 0;
+            
+            }
             double phiNew = GetPhi(px[jj],py[jj]);//+ 3.1415;
             double trkEta = GetEta(px[jj],py[jj],pz[jj]);
             int pdg = id[jj];
@@ -356,9 +375,18 @@ PairDerivedHistos* derivedHisto = new PairDerivedHistos(pairname);
             if (trkY < -1.0 || trkY > 1.0) continue;
      
      	     //TrackN* track = new((*fPartArray)[nAddTrk]) TrackN();
-
+		Track* trk = new Track();
      		
-     	        track[nAddTrk].pdgCode = pdg;
+     	        trk->pdgCode = pdg;
+     	        trk->phi = phiNew;
+     	        trk->px = px[jj];
+     	        trk->py = py[jj];
+     	        trk->pz = pz[jj];
+     	        trk->e = GetEnergy(e[jj],px[jj],py[jj],pz[jj]);
+     	        trk->status = ist[jj];
+     	        trk->eta = trkEta;
+     	        trk->q = charge;
+     	        /*
      	        track[nAddTrk].phi = phiNew;
      	        track[nAddTrk].status = ist[jj];
                 track[nAddTrk].px = px[jj];
@@ -368,18 +396,12 @@ PairDerivedHistos* derivedHisto = new PairDerivedHistos(pairname);
                 track[nAddTrk].phi = phiNew;
                 track[nAddTrk].eta = trkEta;
                 track[nAddTrk].q = charge;
+                */
                 
+                track.push_back(*trk);
                 nAddTrk++;
-     	        /*
-                track->status = ist[jj];
-                track->px = px[jj];
-                track->py = py[jj];
-                track->pz = pz[jj];
-                track->e = GetEnergy(e[jj],px[jj],py[jj],pz[jj]);
-                track->phi = phiNew;
-                track->eta = trkEta;
-                track->q = charge;
-     	*/
+                
+                delete trk;
      	}
      	
      	if(nAddTrk < 2) continue;
@@ -390,9 +412,7 @@ PairDerivedHistos* derivedHisto = new PairDerivedHistos(pairname);
             cout<<"Negative percentile: put it to 0"<<endl;
             percMultV0A = 0;
         }
-        
-
-        
+      
        // cout<<"val spline: "<<percMultV0A<<endl;
         
         //percentile_dist->Fill(percMultV0A);
@@ -437,7 +457,7 @@ PairDerivedHistos* derivedHisto = new PairDerivedHistos(pairname);
  
             if (particlefilter[i].accept(track[j])){
             
-            cout<<"track filt: "<<track[j].pdgCode<<endl;
+            //cout<<"track filt: "<<track[j].pdgCode<<endl;
             histogramManager.HistogramSet[i*centr+multp]->fill(track[j],1.0);
             
            }            
