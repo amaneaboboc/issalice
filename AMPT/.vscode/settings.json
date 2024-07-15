@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "Ana.C": "cpp",
+        "getMult.C": "cpp",
+        "iostream": "cpp",
+        "fstream": "cpp"
+    }
+}
